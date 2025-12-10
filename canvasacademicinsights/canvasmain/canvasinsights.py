@@ -5,11 +5,6 @@ from canvasacademicinsights.canvasaianalyzer import grades
 from canvasacademicinsights.canvasaianalyzer import organize
 from ast import literal_eval
 
-#Remove later
-CANVAS_URL = 'https://canvas.ubc.ca/' # Replace with your Canvas URL
-ACCESS_TOKEN = '11224~vrKZcrC4WZuaXGKE6eZhZrQ8mQ97BHNYYHQnGVx6AwCFFGRhPvNM63HvXHt3UAYk' # Replace with your token
-SKIP_IDS = '[173438, 173346, 173648, 174501, 62722]'
-
 def start():
     data = []
     data = processState("start", data)
@@ -27,11 +22,6 @@ def processState(state, data):
             token = input("Enter the canvas access token you created from your account")
             ids = input("Enter list of course ids to skip")
             
-            #Remove this part later
-            url = CANVAS_URL
-            token = ACCESS_TOKEN
-            ids = SKIP_IDS
-            
             if ids:
                 ids = ids.replace('[','')
                 ids = ids.replace(']','')
@@ -40,7 +30,7 @@ def processState(state, data):
             else:
                 ids = []
             
-            raw = getData(CANVAS_URL, ACCESS_TOKEN, ids)
+            raw = getData(url, token, ids)
             return raw
         case "clean":
             clean = cleanData(data)
