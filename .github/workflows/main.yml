@@ -18,8 +18,8 @@ jobs:
           python-version: '3.11'
 
       - name: Install Dependencies
-        run: pip install -r requirements.txt
-
+        run: pip install ollama matplotlib numpy pandas
+        
       - name: Install ollama
         run: curl -fsSL https://ollama.com/install.sh | sh
 
