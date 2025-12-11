@@ -30,7 +30,11 @@ def processState(state, data):
             else:
                 ids = []
             
-            raw = getData(url, token, ids)
+            try:
+                raw = getData(url, token, ids)
+            except cr.CanvasConnectionError:
+                print("An error was encountered retrieving canvas data")
+                return ''
             return raw
         case "clean":
             clean = cleanData(data)
