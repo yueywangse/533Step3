@@ -3,8 +3,14 @@ from datetime import datetime
 
 dateFormat = "%Y-%m-%dT%H:%M:%SZ"
 
+class CanvasConnectionError(Exception):
+    pass
+
 def getData(canvas_url, access_token, skip_ids):
-    canvas = Canvas(canvas_url, access_token)
+    try:
+        canvas = Canvas(canvas_url, access_token)
+    except:
+        raise CanvasConnectionError
     
     return parseData(canvas, skip_ids)
 
