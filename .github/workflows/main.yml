@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Dependencies
-        run: pip install ollama matplotlib numpy pandas coverage
+        run: pip install ollama matplotlib numpy pandas coverage canvasapi
         
       - name: Install ollama
         run: curl -fsSL https://ollama.com/install.sh | sh
