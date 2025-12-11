@@ -23,10 +23,13 @@ jobs:
       - name: Install ollama
         run: curl -fsSL https://ollama.com/install.sh | sh
 
-      - name: Start ollama
-        run: nohup ollama serve > ollama.log 2>&1 &
-              sleep 5
-              echo "Ollama server started"
+      - name: Start Ollama server
+        run: |
+          # Start Ollama in the background
+          nohup ollama serve > ollama.log 2>&1 &
+          # Give it a few seconds to boot
+          sleep 5
+          echo "Ollama server started"
 
       - name: Test
         run: coverage run -m unittest discover -s canvasacademicinsights/tests -p "test_*.py"
