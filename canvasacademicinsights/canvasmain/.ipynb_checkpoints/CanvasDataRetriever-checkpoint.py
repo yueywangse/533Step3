@@ -158,11 +158,11 @@ class Grade():
         
     def __str__(self):
         strList = []
-        strList.append(self._name)
-        strList.append(self._score)
-        strList.append(self._total)
-        strList.append(self._date)
-        return strList
+        strList.append(self.name)
+        strList.append(self.score)
+        strList.append(self.total)
+        strList.append(self.date)
+        return str(strList)
         
 class AssignmentGrade(Grade):
     def isAssignment(self):
@@ -173,12 +173,12 @@ class AssignmentGrade(Grade):
     
     def __str__(self):
         strList = []
-        strList.append(self._name)
-        strList.append(self._score)
-        strList.append(self._total)
-        strList.append(self._date)
+        strList.append(self.name)
+        strList.append(self.score)
+        strList.append(self.total)
+        strList.append(self.date)
         strList.append('Assignment')
-        return strList
+        return str(strList)
     
 class QuizGrade(Grade):
     def isAssignment(self):
@@ -189,9 +189,9 @@ class QuizGrade(Grade):
     
     def __str__(self):
         strList = []
-        strList.append(self._name)
-        strList.append(self._score)
-        strList.append(self._total)
-        strList.append(self._date)
+        strList.append(self.name)
+        strList.append(self.score)
+        strList.append(self.total)
+        strList.append(self.date)
         strList.append('Quiz')
-        return strList
+        return str(strList)
