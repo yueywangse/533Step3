@@ -14,6 +14,9 @@ MODEL = MID
 
 HEALTH_CHECK = "http://localhost:11434/api/tags"
 
+class ModelError(Exception):
+    pass
+
 class AI:
     def __init__(self):
         self.process = subprocess.Popen(["ollama", "serve"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
@@ -22,7 +25,8 @@ class AI:
             try:
                 urllib.request.urlopen(HEALTH_CHECK)
                 break
-            except:
+            except ModelError:
+                print("Waiting for ollama server to start...")
                 time.sleep(0.2)
 
         # verify correct model is installed
@@ -31,7 +35,11 @@ class AI:
             subprocess.run(["ollama", "pull", MODEL])
     
     def __del__(self):
-        self.process.terminate()
+        try:
+            self.process.terminate()
+        except Exception as ModelError:
+            print("Error terminating ollama server:", ModelError)
+
 
     def ask(self, prompt):
         # clear terminal
