@@ -12,5 +12,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+
+      - name: Start ollama
+        run: nohup ollama serve > ollama.log 2>&1 &
+              sleep 5
+              echo "Ollama server started"
+
       - name: Test
         run: coverage run -m unittest discover -s canvasacademicinsights/tests -p "test_*.py"
