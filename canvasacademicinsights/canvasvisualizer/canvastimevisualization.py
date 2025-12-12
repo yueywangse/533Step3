@@ -9,24 +9,17 @@ class CanvasTimeVisualization:
     def plot_item_scores(self, course_index: int = 0):
         """
         Plot scores for assignments and quizzes in separate subplots for one course.
-
-        Top subplot: assignments over time (by date).
-        Bottom subplot: quizzes by index (1, 2, 3, ...) so quizzes without dates
-        still appear.
-
-        The y-axis is the percentage score for each graded item.
-
-        Parameters
-        ----------
-        course_index : int
-            Index of the course in `self.data` (default 0).
         """
         if not self.data:
             print("No course data available.")
             return
-
-        if course_index < 0 or course_index >= len(self.data):
-            print("Invalid course_index; must be between 0 and", len(self.data) - 1)
+        
+        # Try-except statement added
+        try:
+            if course_index < 0 or course_index >= len(self.data):
+                raise IndexError("Invalid Index")
+        except IndexError as e:
+            print("IndexError:", e)
             return
 
         # Expected course structure:
@@ -128,7 +121,7 @@ class CanvasTimeVisualization:
             date = getattr(item, "date", None)
 
             # Must have valid score & total
-            if score is None or total in (None, 0) or score < 0 or total < 0:
+            if score is None or total is None or score < 0 or total < 0:
                 continue
 
             # Assignments must have date
@@ -144,9 +137,14 @@ class CanvasTimeVisualization:
         # Determine "last" graded assignment by date
         last_assignment = None
         if assignments:
-            assignments.sort(key=lambda x: x.date)
-            last_assignment = assignments[-1]
 
+            # Try-except statement added
+            try: 
+                assignments.sort(key=lambda x: x.date)
+                last_assignment = assignments[-1]
+            except TypeError:
+                print("TypeError: Cannot sort assigments by day")
+                
         # Determine "last" graded quiz
         # If any quiz has a date, use the latest date.
         last_quiz = None
@@ -175,7 +173,17 @@ class CanvasTimeVisualization:
         last_quiz_scores = []
 
         def pct(item):
-            return 100.0 * float(item.score) / float(item.total)
+            try:
+                if item.total == 0:
+                    raise ZeroDivisionError("Total is zero!")
+                return 100.0 * float(item.score) / float(item.total)
+            except ValueError as e:
+                print("Bad item to caculate percentage:", e)
+            except ZeroDivisionError as e:
+                print("ZeroDivisionError", e)
+            except Exception as e:
+                print("Bad item to caculate percentage:", e)
+                return None
 
         # Collect last graded assignment/quiz for each course
         for i, course in enumerate(self.data):
@@ -236,8 +244,6 @@ class CanvasTimeVisualization:
             print("No course data available.")
             return
 
-
-
         # For each (course, week) accumulate sum of pct and count
         # key: (course_idx, week_key) where week_key = (year, week)
         sum_scores = defaultdict(float)
@@ -287,18 +293,22 @@ class CanvasTimeVisualization:
             c = count_scores[(ci, wk)]
             mat[ci, j] = s / c
 
-        # Plot heatmap
-        plt.figure(figsize=(14, 6))
-        im = plt.imshow(mat, aspect="auto", cmap="viridis", vmin=0, vmax=100)
-        plt.colorbar(im, label="Average score (%)")
+        # Try-except statement added
+        try: 
+            # Plot heatmap
+            plt.figure(figsize=(14, 6))
+            im = plt.imshow(mat, aspect="auto", cmap="viridis", vmin=0, vmax=100)
+            plt.colorbar(im, label="Average score (%)")
 
-        # Axis labels
-        plt.yticks(range(n_courses), course_names)
-        plt.xticks(range(n_weeks), week_labels, rotation=45, ha="right")
+            # Axis labels
+            plt.yticks(range(n_courses), course_names)
+            plt.xticks(range(n_weeks), week_labels, rotation=45, ha="right")
 
-        plt.xlabel("Week")
-        plt.ylabel("Course")
-        plt.title("Weekly average percentage score by course")
-        plt.tight_layout()
-        plt.show()
+            plt.xlabel("Week")
+            plt.ylabel("Course")
+            plt.title("Weekly average percentage score by course")
+            plt.tight_layout()
+            plt.show()
+        except RecursionError as e:
+            print(f"Plotting error {e}")
         
