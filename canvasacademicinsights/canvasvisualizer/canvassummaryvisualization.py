@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-
+class PlotError(Exception):
+    pass
 class CanvasSummaryVisualizer:
     def __init__(self, data):
         self.data = data
@@ -13,6 +14,7 @@ class CanvasSummaryVisualizer:
         scores = []
     
         for course in self.data:
+
             course_id, course_name, grade_meta_list, _ = course
 
             overall = None
@@ -28,45 +30,56 @@ class CanvasSummaryVisualizer:
             print("No overall scores to plot.")
             return
 
-        plt.figure(figsize=(14,6))
-        plt.bar(course_names, scores)
-        plt.xticks(rotation=45, ha="right")
-        plt.ylabel("Overall score (%)")
-        plt.ylim(0, 110)
-        plt.title("Overall Canvas scores by course")
-        plt.tight_layout()
-        plt.show()
+        # Try-except statement added 
+        try:
+            if any(s<0 for s in scores):
+                raise PlotError("Negative Scores")
+            
+            plt.figure(figsize=(14,6))
+            plt.bar(course_names, scores)
+            plt.xticks(rotation=45, ha="right")
+            plt.ylabel("Overall score (%)")
+            plt.ylim(0, 110)
+            plt.title("Overall Canvas scores by course")
+            plt.tight_layout()
+            plt.show()
+
+        except PlotError as e:
+            print("PlotError:", e)
 
     def plot_grade_distribution(self, course_index: int = 0):
         """
         Plot a histogram of grade percentages for all graded items
         in a selected course.
-
-        Parameters
-        ----------
-        course_index : int
-            Index of the course to visualize (default 0).
         """
-        if course_index < 0 or course_index >= len(self.data):
-            print("Invalid course index.")
-            return
 
+
+        # Try-except statement added
+        try:
+            if course_index < 0 or course_index >= len(self.data):
+                raise IndexError("Invalid Index")
+        except IndexError as e:
+            print("IndexError:", e)
+            return
+        
         course_id, course_name, _, grade_items = self.data[course_index]
 
         percentages = []
         for item in grade_items:
-            score = getattr(item, "score", None) # gets your score on the assignment or quiz
-            total = getattr(item, "total", None) # the total points the assesment is worth
 
-            if score is None or total in (None, 0) or score < 0 or total < 0:
-                continue
-
-            percentages.append(100 * score / total)
-
-        if not percentages:
-            print("No valid grade percentages available for histogram.")
-            return
-
+            # Try-except statement added 
+            try:
+                score = getattr(item, "score", None) # gets your score on the assignment or quiz
+                total = getattr(item, "total", None) # the total points the assesment is worth
+                if score < 0:
+                    raise PlotError("Invalid Score")
+                if total < 0:
+                    raise PlotError("Invalid Total")
+                percentages.append(100 * score / total)
+            except PlotError as e:
+                print("PlotError: ", e)
+                return
+        
         plt.figure()
         plt.hist(percentages, bins=10, edgecolor="black")
         plt.xlabel("Score (%)")
@@ -79,14 +92,14 @@ class CanvasSummaryVisualizer:
         """
         Create a pie chart showing the proportion of completed vs missing assignments
         for the selected course.
-
-        A 'missing' assignment is defined as:
-           - score is None, OR
-           - total is None or 0
         """
-
-        if course_index < 0 or course_index >= len(self.data):
-            print("Invalid course index.")
+        
+        # Try-except statement added
+        try:
+            if course_index < 0 or course_index >= len(self.data):
+                raise IndexError("Invalid Index")
+        except IndexError as e:
+            print("IndexError:", e)
             return
 
         course_id, course_name, _, grade_items = self.data[course_index]
@@ -110,6 +123,7 @@ class CanvasSummaryVisualizer:
             return
 
         plt.figure()
+        
         plt.pie(
             [completed, missing],
             labels=["Completed", "Missing"],
@@ -129,13 +143,19 @@ class CanvasSummaryVisualizer:
         quiz_counts = []
 
         for course_id, course_name, _, grade_items in self.data:
-            
-            n_assign = sum(1 for item in grade_items if hasattr(item, "isAssignment") and item.isAssignment()) # counts the number of assignments
-            n_quiz = sum(1 for item in grade_items if hasattr(item, "isQuiz") and item.isQuiz())  # counts the number of quizzes
 
-            course_names.append(course_name)
-            assign_counts.append(n_assign)
-            quiz_counts.append(n_quiz)
+            # Try-except statement added
+            try:
+                if not grade_items:
+                    raise ValueError("grade_items is empty or none")
+                n_assign = sum(1 for item in grade_items if hasattr(item, "isAssignment") and item.isAssignment()) # counts the number of assignments
+                n_quiz = sum(1 for item in grade_items if hasattr(item, "isQuiz") and item.isQuiz())  # counts the number of quizzes
+
+                course_names.append(course_name)
+                assign_counts.append(n_assign)
+                quiz_counts.append(n_quiz)
+            except ValueError as e:
+                print(f"Skipping course {course_name} due to data error", e)
 
             # Only include courses that have at least one assignment or quiz
             if n_assign == 0 and n_quiz == 0:
