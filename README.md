@@ -25,3 +25,6 @@ Jordan Kaseram
 - 0.1
     - Initial Release
 
+## PyPi Link
+https://pypi.org/project/canvasAcademicAnalyzer/
+
