@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import datetime
 from canvasacademicinsights.canvasvisualizer import canvastimevisualization as tv
 
@@ -22,13 +22,11 @@ class TestTimeVisuals(unittest.TestCase):
 
     def tearDown(self):
         self.testData = None
-        #print("tearDown: Finished a test.")
+        print("tearDown: Finished a test.")
 
     @classmethod
     def tearDownClass(cls):
-        #print("tearDownClass: All tests done")
-        pass
-
+        print("tearDownClass: All tests done")
 
     def test_get_last_graded_items_normal(self):
         class FakeAssignment:
@@ -89,11 +87,75 @@ class TestTimeVisuals(unittest.TestCase):
         self.assertTrue(mock_plt.tight_layout.called)
         self.assertTrue(mock_plt.show.called)
 
-                
+    @patch("canvasacademicinsights.canvasvisualizer.canvastimevisualization.plt")
+    def test_plot_item_scores(self, mock_plt):
+        class FakeAssignment:
+            def __init__(self, score, total, date):
+                self.score = score
+                self.total = total
+                self.date = date
+            def isAssignment(self): return True
+            def isQuiz(self): return False
+        class FakeQuiz:
+            def __init__(self, score, total, date=None):
+                self.score = score
+                self.total = total
+                self.date = date
+            def isAssignment(self): return False
+            def isQuiz(self): return True
+
+
+        self.testData[0][3] = [
+            FakeAssignment(8, 10, datetime.date(2025, 1, 2)), 
+            FakeAssignment(5, 5,  datetime.date(2025, 1, 1)), 
+            FakeQuiz(15, 20,  datetime.date(2025, 1, 3)),  
+        ]
+        mock_fig = MagicMock()
+        mock_ax_assign = MagicMock()
+        mock_ax_quiz = MagicMock()
+        mock_plt.subplots.return_value = (mock_fig, (mock_ax_assign, mock_ax_quiz))
+        visualizer = tv.CanvasTimeVisualization(self.testData)
+        visualizer.plot_item_scores(course_index=0)
+        
+        mock_plt.subplots.assert_called_once_with(2, 1, figsize=(10, 8))
+        self.assertEqual(mock_ax_assign.plot.call_count, 1)
+        self.assertEqual(mock_ax_quiz.plot.call_count, 1)
+        mock_ax_assign.set_ylim.assert_called_once_with(0, 110)
+        mock_ax_quiz.set_ylim.assert_called_once_with(0, 110)
+        mock_ax_assign.set_ylabel.assert_called_once_with("Score (%)")
+        mock_ax_quiz.set_xlabel.assert_called_once_with("Quiz number")
+        mock_ax_assign.set_xticks.assert_called_once()
+        mock_ax_quiz.set_set_title("Quizzes")
+        mock_fig.tight_layout.assert_called_once()
+        self.assertTrue(mock_plt.show.called)
 
 
 
 
+    @patch("canvasacademicinsights.canvasvisualizer.canvastimevisualization.plt")
+    def test_plot_all_last_graded_items_bar(self, mock_plt):
+        class FakeAssignment:
+            def __init__(self, score, total, date):
+                self.score = score
+                self.total = total
+                self.date = date
 
-if __name__ == "__main__":
-    unittest.main(argv=[''], verbosity=2, exit=False)
+        visualizer = tv.CanvasTimeVisualization(self.testData)
+
+        self.testData[0][3] = [FakeAssignment(8, 10, datetime.date(2025, 1, 2))]
+
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        mock_plt.subplots.return_value = (mock_fig, mock_ax)
+        visualizer.plot_all_last_graded_items_bar()
+
+        mock_plt.subplots.assert_called_once_with(figsize=(14, 6))
+        self.assertTrue(mock_plt.show.called)
+        self.assertEqual(len(mock_ax.bar.call_args_list), 2)
+        mock_ax.set_ylabel.assert_called_once_with("Score (%)")
+        mock_ax.set_ylim.assert_called_once_with(0, 110)
+        mock_ax.set_title.assert_called_once_with(
+            "Last graded assignment and quiz across all courses"
+        )
+        mock_fig.tight_layout.assert_called_once()
+        self.assertTrue(mock_plt.show.called)
